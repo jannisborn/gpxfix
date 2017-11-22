@@ -7,7 +7,10 @@ Here, I provide a small python-based GUI that helps you reestablishing broken GP
 
 
 ## When can this be useful?
-It's a common issue for every sportsman who loves recording activities. Your device runs out of battery before you come back home, you forgot to start the record when you left home or, even worse but a frequent problem in older iPhones, you lost GPS signal somewhere on the track for a couple of minutes. Then if you look at your track, you see ugly straight lines across the map.
+It's a common issue for every sportsman who loves recording activities. Your device runs out of battery before you come back home, you forgot to start the record when you left home or, even worse but a frequent problem in older iPhones, you lost GPS signal somewhere on the track for a couple of minutes. 
+Then, checking out your track, you see straight lines or the first/last bit is completelty missing.
+
+This semi-automated python-based interface can repair these broken GPX files.
 
 ## Installation
 Clone the repo and please make sure to have installed the following:
