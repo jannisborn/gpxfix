@@ -3,7 +3,7 @@
 ## Problem 
 
 Here, I provide a small python-based GUI that helps you reestablishing broken GPX-files.
-![alt text](Helper/Overview.png "Random shot")
+![alt text](Helper/overview.png "Random shot")
 
 
 ## When can this be useful?
