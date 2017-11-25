@@ -17,14 +17,14 @@ Clone the repo and please make sure to have installed the following:
 * Python 3.x
 * [gpxpy](https://www.github.com/tkrajina/gpxpy), a useful parser to deal with GPX files
 * matplotlib, numpy, tkinter
-* cartopy (You only need it if you want to see a map of your track, which is disabeld by default since cartopy is very slows; [known cartopy issue](https://github.com/SciTools/cartopy/issues/403))
+* cartopy (Only needed for map plotting (disabled by default due to speed problems); [known cartopy issue](https://github.com/SciTools/cartopy/issues/403))
 
 Feel free to fork and please report any issues.
 
 ## Manual
 
 1. Clone repo and install libraries.
-2. If you run the file, the default window of the GUI shows up:
+2. If you run the file, the default windofw of the GUI shows up:
 ![alt text](Helper/Default.png "Main window in action")
 3. You see a coupe of options here, the first step should be to upload your GPX file
 4. You get a confirmation message once the file has been parsed successfully
