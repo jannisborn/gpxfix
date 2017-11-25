@@ -17,7 +17,7 @@ Clone the repo and please make sure to have installed the following:
 * Python 3.x
 * [gpxpy](https://www.github.com/tkrajina/gpxpy), a useful parser to deal with GPX files
 * matplotlib, numpy, tkinter
-* cartopy (Only needed for map plotting (disabled by default due to speed problems); [known cartopy issue](https://github.com/SciTools/cartopy/issues/403))
+* cartopy (Only needed for map plotting. Disabled by default due to speed problems; [known cartopy issue](https://github.com/SciTools/cartopy/issues/403))
 
 Feel free to fork and please report any issues.
 
@@ -26,7 +26,7 @@ Feel free to fork and please report any issues.
 1. Clone repo and install libraries.
 2. If you run the file, the default windofw of the GUI shows up:
 ![alt text](Helper/Default.png "Main window in action")
-3. You see a coupe of options here, the first step should be to upload your GPX file
+3. You see a couple of options here, the first step should be to upload your GPX file
 4. You get a confirmation message once the file has been parsed successfully
 5. Press **Show Tracking Mistakes** to let the algorithm find the missing sections in your file. Per default a tracking mistake is defined as not having recorded a GPX trackpoint for at least **5 sec** with you having moved at least **400m**. I find this okay for cycling but you can change these parameters at the beginning of the code.
 
