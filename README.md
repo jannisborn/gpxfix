@@ -46,9 +46,12 @@ Feel free to fork and please report any issues.
 
 10. If you have multiple issues with your GPX file, just repeat the procedure.
 
+## Disclaimer
+I am not a professional programmer but like playing around with python libraries. Also I'm a big open source fan so I try to share as much as I can.
 
 ## ToDo
 
+0. Allow Umlaute (ä,ö,ü) and ß in activity title
 1. Export code to an .exe for non-python Users.
 2. Make speed prediction realistic
-3. I hold it with Johan Wolfgang von Goethe, "*If I would have had time, you would have got condensed code*"
+
