@@ -47,7 +47,7 @@ Feel free to fork and please report any issues.
 10. If you have multiple issues with your GPX file, just repeat the procedure.
 
 ## Disclaimer
-I am not a professional programmer but like playing around with python libraries.
+I am not a professional programmer but like playing around with python libraries. Feel free to fork and please report any bugs.
 
 ## ToDo
 
