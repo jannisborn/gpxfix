@@ -439,10 +439,10 @@ class Window:
 
         # DONE. Now save the new file
         self.file = self.new_GPX.to_xml()
-        directory = '\Corrected Files'
+        directory = 'Corrected Files'
         if not os.path.exists(os.getcwd()+directory):
             os.makedirs(os.getcwd()+directory)
-        f = open(self.path+directory+'\\'+self.filename+'_repaired.gpx','w+')
+        f = open(os.path.join(self.path,directory,self.filename+'_repaired.gpx'),'w+')
         f.write(self.file)
         f.close()
         # Give confirmation message
