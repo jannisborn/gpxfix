@@ -115,13 +115,6 @@ class Window:
         self.win_succ_frame = Frame(self.win_succ)
         self.win_succ.minsize(width=250, height=100)
         self.win_succ.wm_title("Confirmation")
-        # Option in confirmation window to show the GPX Track
-        self.b_showMap = Button(
-            self.win_succ,
-            text="Show GPX on map (very slow)",
-            command=lambda: self.make_map(fileType, "plain"),
-        )
-        self.b_showMap.grid(row=2, column=1, padx=20, pady=20)
         self.win_succ_mess = Label(
             self.win_succ, text="Upload and parsing of GPS successful"
         )
