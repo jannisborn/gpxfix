@@ -1,2 +1,2 @@
-#! /usr/bin/env bash
-python ../gpxfix/main.py
+#! /usr/bin/env python
+from gpxfix.main import *
