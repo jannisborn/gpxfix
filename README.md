@@ -1,16 +1,17 @@
-[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![PyPI version](https://badge.fury.io/py/gpxfix.svg)](https://badge.fury.io/py/gpxfix)
 [![License:
 MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![PyPI version](https://badge.fury.io/py/gpxfix.svg)](https://badge.fury.io/py/gpxfix)
 [![Downloads](https://pepy.tech/badge/gpxfix)](https://pepy.tech/project/gpxfix)
 [![Downloads](https://pepy.tech/badge/gpxfix/month)](https://pepy.tech/project/gpxfix)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
 # gpxfix
-
-## Problem 
-
 A small python-based GUI that helps you reestablishing broken GPX-files.
 ![alt text](assets/overview.png "Random shot")
+
+## When can this be useful?
+It's a common issue for every sportsman who loves recording activities. Your device runs out of battery before you come back home, you forgot to start the record when you left home or, even worse but a frequent problem in older iPhones, you lost GPS signal somewhere on the track for a couple of minutes. 
+Then, checking out your track, you see straight lines or the first/last bit is completelty missing.
 
 ## Installation
 `gpxfix` ships via `pypi`:
@@ -21,9 +22,7 @@ pip install gpxfix
 Afterwards, just type `gpxfix` to start the UI
 
 
-## When can this be useful?
-It's a common issue for every sportsman who loves recording activities. Your device runs out of battery before you come back home, you forgot to start the record when you left home or, even worse but a frequent problem in older iPhones, you lost GPS signal somewhere on the track for a couple of minutes. 
-Then, checking out your track, you see straight lines or the first/last bit is completelty missing.
+
 
 
 ## Usage instruction
