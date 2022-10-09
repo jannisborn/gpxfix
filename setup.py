@@ -36,7 +36,7 @@ setup(
     author_email="jannis.born@gmx.de",
     url="https://github.com/jannisborn/gpxfix",
     license="MIT",
-    install_requires=["numpy", "gpxpy", "matplotlib"],
+    install_requires=["numpy", "gpxpy>=1.3.5", "matplotlib"],
     classifiers=[
         "Intended Audience :: Developers",
         "License :: OSI Approved :: MIT License",
