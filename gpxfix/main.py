@@ -581,14 +581,33 @@ class Window:
             if stepDist > 10:
                 stepTime = stepDist / self.speed
                 prevTime = gpx_segment.points[-1].time
-                gpx_segment.points.append(
-                    gpxpy.gpx.GPXTrackPoint(
-                        dataNew[indN].latitude,
-                        dataNew[indN].longitude,
-                        elevation=dataNew[indN].elevation,
-                        time=prevTime + datetime.timedelta(0, stepTime),
-                    )
+
+                point = dataNew[indN]
+                trackpoint = gpxpy.gpx.GPXTrackPoint(
+                    point.latitude,
+                    point.longitude,
+                    elevation=point.elevation,
+                    time=prevTime + datetime.timedelta(0, stepTime),
                 )
+
+                if point.extensions == []:
+                    continue
+                
+                # add extensions
+                extensions = {}
+                for ext in point.extensions:
+                    for extchild in list(ext):
+                        extensions[extchild.tag.split('}')[-1]] = extchild.text
+                extension_string = (
+                    EXTENSION_PREFIX +
+                    "".join([f"<gpxtpx:{k}>{v}</gpxtpx:{k}>" for k,v in extensions.items()]) +
+                    EXTENSION_POSTFIX
+                )
+                gpx_extension = ElementTree.fromstring(extension_string)
+                trackpoint.extensions.append(gpx_extension)
+                gpx_segment.points.append(trackpoint)
+
+
             indN += 1
 
         # Rest of original GPX
