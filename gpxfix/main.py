@@ -18,8 +18,12 @@ from tkinter import (
 
 import gpxpy
 import gpxpy.gpx
+from xml.etree import ElementTree
 import matplotlib.pyplot as plt
 import numpy as np
+
+EXTENSION_PREFIX = f"""<gpxtpx:TrackPointExtension xmlns:gpxtpx="http://www.garmin.com/xmlschemas/TrackPointExtension/v1">"""
+EXTENSION_POSTFIX = "</gpxtpx:TrackPointExtension>"
 
 
 class Window:
@@ -464,6 +468,7 @@ class Window:
 
         # Create new GPX file.
         self.new_GPX = gpxpy.gpx.GPX()
+        self.new_GPX.nsmap["gpxtpx"] = "http://www.garmin.com/xmlschemas/TrackPointExtension/v1"
         # Create first track and segment in our GPX:
         gpx_track = gpxpy.gpx.GPXTrack()
         self.new_GPX.tracks.append(gpx_track)
@@ -475,19 +480,31 @@ class Window:
         indO = 0
         thresh = self.gpx["main"]["trackHoles"][np.argmin(dists)]
         while indO < thresh:
-            gpx_segment.points.append(
-                gpxpy.gpx.GPXTrackPoint(
-                    dataOld[indO, 0],
-                    dataOld[indO, 1],
-                    elevation=dataOld[indO, 2],
-                    time=self.gpx["main"]["parsed"]
-                    .tracks[0]
-                    .segments[0]
-                    .points[indO]
-                    .time,
-                )
+            point = self.gpx["main"]["parsed"].tracks[0].segments[0].points[indO]
+            trackpoint = gpxpy.gpx.GPXTrackPoint(
+                dataOld[indO, 0],
+                dataOld[indO, 1],
+                elevation=dataOld[indO, 2],
+                time=point.time,
             )
             indO += 1
+            if point.extensions == []:
+                continue
+            
+            # add extensions
+            extensions = {}
+            for ext in point.extensions:
+                for extchild in list(ext):
+                    extensions[extchild.tag.split('}')[-1]] = extchild.text
+            extension_string = (
+                EXTENSION_PREFIX +
+                "".join([f"<gpxtpx:{k}>{v}</gpxtpx:{k}>" for k,v in extensions.items()]) +
+                EXTENSION_POSTFIX
+            )
+            gpx_extension = ElementTree.fromstring(extension_string)
+            trackpoint.extensions.append(gpx_extension)
+            gpx_segment.points.append(trackpoint)
+            
 
         # Compute cumulative time needed for the snippet (in seconds)
         if thresh != len(dataOld) and thresh != 0:  # Regular case
@@ -576,19 +593,32 @@ class Window:
 
         # Rest of original GPX
         while indO < len(dataOld):
-            gpx_segment.points.append(
-                gpxpy.gpx.GPXTrackPoint(
-                    dataOld[indO, 0],
-                    dataOld[indO, 1],
-                    elevation=dataOld[indO, 2],
-                    time=self.gpx["main"]["parsed"]
-                    .tracks[0]
-                    .segments[0]
-                    .points[indO]
-                    .time,
-                )
+            point = self.gpx["main"]["parsed"].tracks[0].segments[0].points[indO]
+            trackpoint = gpxpy.gpx.GPXTrackPoint(
+                dataOld[indO, 0],
+                dataOld[indO, 1],
+                elevation=dataOld[indO, 2],
+                time=point.time,
             )
             indO += 1
+
+            if point.extensions == []:
+                continue
+            
+            # add extensions
+            extensions = {}
+            for ext in point.extensions:
+                for extchild in list(ext):
+                    extensions[extchild.tag.split('}')[-1]] = extchild.text
+            extension_string = (
+                EXTENSION_PREFIX +
+                "".join([f"<gpxtpx:{k}>{v}</gpxtpx:{k}>" for k,v in extensions.items()]) +
+                EXTENSION_POSTFIX
+            )
+            gpx_extension = ElementTree.fromstring(extension_string)
+            trackpoint.extensions.append(gpx_extension)
+            gpx_segment.points.append(trackpoint)
+
 
         # DONE. Now save the new file
         self.file = self.new_GPX.to_xml()
