@@ -416,21 +416,6 @@ class Window:
 
         var = np.array([dataNew[0].latitude, dataNew[0].longitude])
 
-        np.array(
-            [
-                self.gpx["snip"]["parsed"]
-                .tracks[0]
-                .segments[0]
-                .points[0]
-                .latitude,
-                self.gpx["snip"]["parsed"]
-                .tracks[0]
-                .segments[0]
-                .points[0]
-                .longitude,
-            ]
-        )
-
         # Find the right position of the snippet.
         dists = [
             gpxpy.geo.haversine_distance(
@@ -489,6 +474,7 @@ class Window:
             )
             indO += 1
             if point.extensions == []:
+                gpx_segment.points.append(trackpoint)
                 continue
             
             # add extensions
@@ -505,7 +491,6 @@ class Window:
             trackpoint.extensions.append(gpx_extension)
             gpx_segment.points.append(trackpoint)
             
-
         # Compute cumulative time needed for the snippet (in seconds)
         if thresh != len(dataOld) and thresh != 0:  # Regular case
             cum_Time = (
@@ -567,7 +552,6 @@ class Window:
         # Snippet GPX
         indN = 0
         while indN < len(dataNew) - 1:
-
             # Compute distance between previous location and this location. Compute how much time this path
             # requires, but compensate with the error such that total time will match the GM distance
             stepDist = gpxpy.geo.haversine_distance(
@@ -591,6 +575,8 @@ class Window:
                 )
 
                 if point.extensions == []:
+                    indN += 1
+                    gpx_segment.points.append(trackpoint)
                     continue
                 
                 # add extensions
@@ -606,8 +592,6 @@ class Window:
                 gpx_extension = ElementTree.fromstring(extension_string)
                 trackpoint.extensions.append(gpx_extension)
                 gpx_segment.points.append(trackpoint)
-
-
             indN += 1
 
         # Rest of original GPX
@@ -622,6 +606,7 @@ class Window:
             indO += 1
 
             if point.extensions == []:
+                gpx_segment.points.append(trackpoint)
                 continue
             
             # add extensions
