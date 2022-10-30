@@ -52,9 +52,7 @@ class Window:
         self.master.wm_title("GPX Track Repair")
 
         # QUIT Button
-        self.b_quit = Button(
-            text="QUIT", fg="black", bg="red", command=self.frame.quit
-        )
+        self.b_quit = Button(text="QUIT", fg="black", bg="red", command=self.frame.quit)
         self.b_quit.grid(row=0, column=0, padx=(10, 150), pady=(10, 50))
 
         # GPX Path Button
@@ -69,9 +67,7 @@ class Window:
         self.b_trackMist = Button(
             text="Show Tracking Mistakes", command=self.trackMistakes
         )
-        self.b_trackMist.grid(
-            row=1, column=2, padx=(10, 0), pady=(10, 10), sticky="w"
-        )
+        self.b_trackMist.grid(row=1, column=2, padx=(10, 0), pady=(10, 10), sticky="w")
         self.b_trackMist.grid_columnconfigure(0, weight=1)
 
         # Snippet GPX Upload Button
@@ -167,9 +163,9 @@ class Window:
             )
 
         if len(self.gpx["main"]["trackHoles"]) == 0:
-            mess = Label(
-                self.win_links, text="Great! No error has been found!"
-            ).grid(row=1, column=1, pady=10, sticky="w")
+            mess = Label(self.win_links, text="Great! No error has been found!").grid(
+                row=1, column=1, pady=10, sticky="w"
+            )
 
         # Display trackHole coordinates
         self.links = []
@@ -186,9 +182,9 @@ class Window:
             )
 
             # Display start end
-            start = Label(
-                self.win_links, text=(startLat + " , " + startLong)
-            ).grid(row=run + 1, column=1, pady=10, sticky="w")
+            start = Label(self.win_links, text=(startLat + " , " + startLong)).grid(
+                row=run + 1, column=1, pady=10, sticky="w"
+            )
             stop = Label(self.win_links, text=(endLat + " , " + endLong)).grid(
                 row=run + 1, column=2, pady=10, sticky="w"
             )
@@ -266,9 +262,7 @@ class Window:
             text="GO!",
             fg="blue",
             cursor="hand2",
-            command=lambda: webbrowser.open_new(
-                self.links[int(tkvar.get()) - 1]
-            ),
+            command=lambda: webbrowser.open_new(self.links[int(tkvar.get()) - 1]),
         )
         ok_but.grid(row=2, column=4, pady=0, sticky="w")
 
@@ -289,6 +283,26 @@ class Window:
                 .replace("\\", "_")
                 .lower()
             )
+
+        # NOTE: First, we remove points in the file that are duplicates (i.e.,
+        # consecutive time points with SAME coordinates. This happens e.g., if
+        # a device continues/starts tracking without having GPS signal
+        for track in self.gpx[fileType]["parsed"].tracks:
+            for segment in track.segments:
+
+                sane, counter = False, 0
+                while not sane:
+                    sane = True
+                    for ind, point in enumerate(segment.points):
+                        lat, long = point.latitude, point.longitude
+                        if ind > 0 and lat == prev_lat and long == prev_long:
+                            segment.remove_point(ind)
+                            sane = False
+                            counter += 1
+                            break
+                        prev_lat, prev_long = point.latitude, point.longitude
+
+        print(f"Removed {counter} duplicate points.")
 
         # Allocate space
         self.gpx[fileType]["plain"] = np.zeros(
@@ -322,25 +336,15 @@ class Window:
                             )
                             if euclid > self.distThreshold:
                                 self.gpx[fileType]["trackHoles"].append(ind)
-                                self.gpx[fileType]["trackHoleSizes"].append(
-                                    euclid
-                                )
+                                self.gpx[fileType]["trackHoleSizes"].append(euclid)
 
         # Save features manually
         if fileType == "main":
             self.gpx[fileType]["startTime"] = (
-                self.gpx[fileType]["parsed"]
-                .tracks[0]
-                .segments[0]
-                .points[0]
-                .time
+                self.gpx[fileType]["parsed"].tracks[0].segments[0].points[0].time
             )
             self.gpx[fileType]["finishTime"] = (
-                self.gpx[fileType]["parsed"]
-                .tracks[0]
-                .segments[0]
-                .points[-1]
-                .time
+                self.gpx[fileType]["parsed"].tracks[0].segments[0].points[-1].time
             )
         self.gpx[fileType]["minLat"] = min(self.gpx[fileType]["plain"][:, 0])
         self.gpx[fileType]["maxLat"] = max(self.gpx[fileType]["plain"][:, 0])
@@ -416,21 +420,6 @@ class Window:
 
         var = np.array([dataNew[0].latitude, dataNew[0].longitude])
 
-        np.array(
-            [
-                self.gpx["snip"]["parsed"]
-                .tracks[0]
-                .segments[0]
-                .points[0]
-                .latitude,
-                self.gpx["snip"]["parsed"]
-                .tracks[0]
-                .segments[0]
-                .points[0]
-                .longitude,
-            ]
-        )
-
         # Find the right position of the snippet.
         dists = [
             gpxpy.geo.haversine_distance(
@@ -452,9 +441,7 @@ class Window:
             )
         )
         dists.append(
-            gpxpy.geo.haversine_distance(
-                *np.concatenate((dataOld[-1, 0:2], var))
-            )
+            gpxpy.geo.haversine_distance(*np.concatenate((dataOld[-1, 0:2], var)))
         )
 
         if min(dists) > self.distThreshold:
@@ -468,7 +455,9 @@ class Window:
 
         # Create new GPX file.
         self.new_GPX = gpxpy.gpx.GPX()
-        self.new_GPX.nsmap["gpxtpx"] = "http://www.garmin.com/xmlschemas/TrackPointExtension/v1"
+        self.new_GPX.nsmap[
+            "gpxtpx"
+        ] = "http://www.garmin.com/xmlschemas/TrackPointExtension/v1"
         # Create first track and segment in our GPX:
         gpx_track = gpxpy.gpx.GPXTrack()
         self.new_GPX.tracks.append(gpx_track)
@@ -489,31 +478,29 @@ class Window:
             )
             indO += 1
             if point.extensions == []:
+                gpx_segment.points.append(trackpoint)
                 continue
-            
+
             # add extensions
             extensions = {}
             for ext in point.extensions:
                 for extchild in list(ext):
-                    extensions[extchild.tag.split('}')[-1]] = extchild.text
+                    extensions[extchild.tag.split("}")[-1]] = extchild.text
             extension_string = (
-                EXTENSION_PREFIX +
-                "".join([f"<gpxtpx:{k}>{v}</gpxtpx:{k}>" for k,v in extensions.items()]) +
-                EXTENSION_POSTFIX
+                EXTENSION_PREFIX
+                + "".join(
+                    [f"<gpxtpx:{k}>{v}</gpxtpx:{k}>" for k, v in extensions.items()]
+                )
+                + EXTENSION_POSTFIX
             )
             gpx_extension = ElementTree.fromstring(extension_string)
             trackpoint.extensions.append(gpx_extension)
             gpx_segment.points.append(trackpoint)
-            
 
         # Compute cumulative time needed for the snippet (in seconds)
         if thresh != len(dataOld) and thresh != 0:  # Regular case
             cum_Time = (
-                self.gpx["main"]["parsed"]
-                .tracks[0]
-                .segments[0]
-                .points[thresh + 1]
-                .time
+                self.gpx["main"]["parsed"].tracks[0].segments[0].points[thresh + 1].time
                 - gpx_segment.points[-1].time
             ).total_seconds()
 
@@ -567,7 +554,6 @@ class Window:
         # Snippet GPX
         indN = 0
         while indN < len(dataNew) - 1:
-
             # Compute distance between previous location and this location. Compute how much time this path
             # requires, but compensate with the error such that total time will match the GM distance
             stepDist = gpxpy.geo.haversine_distance(
@@ -591,23 +577,25 @@ class Window:
                 )
 
                 if point.extensions == []:
+                    indN += 1
+                    gpx_segment.points.append(trackpoint)
                     continue
-                
+
                 # add extensions
                 extensions = {}
                 for ext in point.extensions:
                     for extchild in list(ext):
-                        extensions[extchild.tag.split('}')[-1]] = extchild.text
+                        extensions[extchild.tag.split("}")[-1]] = extchild.text
                 extension_string = (
-                    EXTENSION_PREFIX +
-                    "".join([f"<gpxtpx:{k}>{v}</gpxtpx:{k}>" for k,v in extensions.items()]) +
-                    EXTENSION_POSTFIX
+                    EXTENSION_PREFIX
+                    + "".join(
+                        [f"<gpxtpx:{k}>{v}</gpxtpx:{k}>" for k, v in extensions.items()]
+                    )
+                    + EXTENSION_POSTFIX
                 )
                 gpx_extension = ElementTree.fromstring(extension_string)
                 trackpoint.extensions.append(gpx_extension)
                 gpx_segment.points.append(trackpoint)
-
-
             indN += 1
 
         # Rest of original GPX
@@ -622,22 +610,24 @@ class Window:
             indO += 1
 
             if point.extensions == []:
+                gpx_segment.points.append(trackpoint)
                 continue
-            
+
             # add extensions
             extensions = {}
             for ext in point.extensions:
                 for extchild in list(ext):
-                    extensions[extchild.tag.split('}')[-1]] = extchild.text
+                    extensions[extchild.tag.split("}")[-1]] = extchild.text
             extension_string = (
-                EXTENSION_PREFIX +
-                "".join([f"<gpxtpx:{k}>{v}</gpxtpx:{k}>" for k,v in extensions.items()]) +
-                EXTENSION_POSTFIX
+                EXTENSION_PREFIX
+                + "".join(
+                    [f"<gpxtpx:{k}>{v}</gpxtpx:{k}>" for k, v in extensions.items()]
+                )
+                + EXTENSION_POSTFIX
             )
             gpx_extension = ElementTree.fromstring(extension_string)
             trackpoint.extensions.append(gpx_extension)
             gpx_segment.points.append(trackpoint)
-
 
         # DONE. Now save the new file
         self.file = self.new_GPX.to_xml()
