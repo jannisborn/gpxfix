@@ -284,6 +284,26 @@ class Window:
                 .lower()
             )
 
+        # NOTE: First, we remove points in the file that are duplicates (i.e.,
+        # consecutive time points with SAME coordinates. This happens e.g., if
+        # a device continues/starts tracking without having GPS signal
+        for track in self.gpx[fileType]["parsed"].tracks:
+            for segment in track.segments:
+
+                sane, counter = False, 0
+                while not sane:
+                    sane = True
+                    for ind, point in enumerate(segment.points):
+                        lat, long = point.latitude, point.longitude
+                        if ind > 0 and lat == prev_lat and long == prev_long:
+                            segment.remove_point(ind)
+                            sane = False
+                            counter += 1
+                            break
+                        prev_lat, prev_long = point.latitude, point.longitude
+
+        print(f"Removed {counter} duplicate points.")
+
         # Allocate space
         self.gpx[fileType]["plain"] = np.zeros(
             (len(self.gpx[fileType]["parsed"].tracks[0].segments[0].points), 4)
