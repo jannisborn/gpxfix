@@ -500,7 +500,7 @@ class Window:
         # Compute cumulative time needed for the snippet (in seconds)
         if thresh != len(dataOld) and thresh != 0:  # Regular case
             cum_Time = (
-                self.gpx["main"]["parsed"].tracks[0].segments[0].points[thresh + 1].time
+                self.gpx["main"]["parsed"].tracks[0].segments[0].points[thresh].time
                 - gpx_segment.points[-1].time
             ).total_seconds()
 
