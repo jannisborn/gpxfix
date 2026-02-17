@@ -5,15 +5,13 @@ import webbrowser
 from math import asin, cos, radians, sin, sqrt
 from tkinter import (
     Button,
-    Entry,
     Frame,
-    Label,
-    Message,
     OptionMenu,
     StringVar,
     Tk,
     Toplevel,
     filedialog,
+    messagebox,
 )
 
 import gpxpy
@@ -47,52 +45,70 @@ class Window:
 
         """ Set up GUI """
         self.master = master
-        self.frame = Frame(self.master)
-        self.master.minsize(width=800, height=300)
+        self.master.minsize(width=900, height=320)
         self.master.wm_title("GPX Track Repair")
 
+        # Main UI container
+        self.main = Frame(self.master, padx=20, pady=16)
+        self.main.pack(fill="both", expand=True)
+
+        # Top bar
+        self.topbar = Frame(self.main)
+        self.topbar.pack(fill="x")
+
         # QUIT Button
-        self.b_quit = Button(text="QUIT", fg="black", bg="red", command=self.frame.quit)
-        self.b_quit.grid(row=0, column=0, padx=(10, 150), pady=(10, 50))
+        self.b_quit = Button(
+            self.topbar, text="QUIT", fg="black", bg="red", command=self.master.quit
+        )
+        self.b_quit.pack(side="left")
+
+        # Track controls row
+        self.track_controls = Frame(self.main)
+        self.track_controls.pack(pady=(44, 12))
 
         # GPX Path Button
         self.b_gpxUp = Button(
+            self.track_controls,
             text="Upload GPX-Track",
             bg="yellow",
             command=lambda: self.trackUpload("main"),
         )
-        self.b_gpxUp.grid(row=1, column=1, padx=0, pady=(10, 10), sticky="w")
+        self.b_gpxUp.pack(side="left", padx=(0, 12))
 
         # Tracking Mistake Detector Button
         self.b_trackMist = Button(
-            text="Show Tracking Mistakes", command=self.trackMistakes
+            self.track_controls,
+            text="Show Tracking Mistakes",
+            command=self.trackMistakes,
         )
-        self.b_trackMist.grid(row=1, column=2, padx=(10, 0), pady=(10, 10), sticky="w")
-        self.b_trackMist.grid_columnconfigure(0, weight=1)
+        self.b_trackMist.pack(side="left")
+
+        # Snippet controls row
+        self.snip_controls = Frame(self.main)
+        self.snip_controls.pack(pady=(6, 10))
 
         # Snippet GPX Upload Button
         self.b_gpxUpSnipp = Button(
+            self.snip_controls,
             text="Upload GPX fragment",
             bg="yellow",
             command=lambda: self.trackUpload("snip"),
         )
-        self.b_gpxUpSnipp.grid(row=2, column=1, padx=0, pady=10, sticky="w")
+        self.b_gpxUpSnipp.pack(side="left", padx=(0, 12))
 
-        # Speed Entry
-        self.e_dist = Entry(master)
-        self.e_dist.insert(0, "Distance of snippet on GoogleMaps in m")
-        self.e_dist.config(width=37)
-        self.e_dist.grid(row=2, column=2, padx=(10, 0), pady=10, sticky="w")
-        self.e_dist.grid_columnconfigure(1, weight=1)
-        self.e_dist.bind("<FocusIn>", self.click_on)
+        # Confirmation button for distance submission (opens a modal prompt).
+        self.b_OK = Button(
+            self.snip_controls, text="Enter Distance", command=self.read_distance
+        )
+        self.b_OK.pack(side="left")
 
-        # Confirmation button for speed submission
-        self.b_OK = Button(text="OK", command=self.read_distance)
-        self.b_OK.grid(row=2, column=3, padx=(0, 0), pady=10, sticky="w")
-
-        # Merge Button
-        self.b_merge = Button(text="Repair!", bg="green", command=self.Merge)
-        self.b_merge.grid(row=3, column=1)
+        # Merge Button row
+        self.repair_controls = Frame(self.main)
+        self.repair_controls.pack(pady=(8, 0))
+        self.b_merge = Button(
+            self.repair_controls, text="Repair!", bg="green", command=self.Merge
+        )
+        self.b_merge.pack()
 
     def trackUpload(self, fileType):
         """
@@ -103,22 +119,19 @@ class Window:
 
         # FileDialog, parsing and parameter extraction
         self.gpx[fileType]["path"] = filedialog.askopenfilename(
-            parent=root, title="Choose a file"
+            parent=self.master, title="Choose a file"
         )
         self.gpx[fileType]["raw"] = open(self.gpx[fileType]["path"], "r")
         self.gpx[fileType]["parsed"] = gpxpy.parse(self.gpx[fileType]["raw"])
 
         self.extractParam(fileType)
 
-        # Confirmation window
-        self.win_succ = Toplevel(self.master)
-        self.win_succ_frame = Frame(self.win_succ)
-        self.win_succ.minsize(width=250, height=100)
-        self.win_succ.wm_title("Confirmation")
-        self.win_succ_mess = Label(
-            self.win_succ, text="Upload and parsing of GPS successful"
+        self.messageWindow(
+            title="Confirmation",
+            message="Upload and parsing of GPS successful",
+            width=250,
+            height=100,
         )
-        self.win_succ_mess.grid(row=1, column=1, padx=20, pady=20)
 
     def trackMistakes(self):
         """
@@ -137,63 +150,25 @@ class Window:
             )
             return None
 
-        # Output a window with the tracking mistakes.
-        # There is a hyperlink referring to Google/myMaps with every tracking mistake
+        # Output a compact control window that relies on native dialogs for textual info.
         self.win_links = Toplevel(self.master)
-        self.win_links_frame = Frame(self.win_links)
+        self.win_links.minsize(width=500, height=180)
+        self.win_links.wm_title("Tracking mistakes")
 
-        # Appearance of window
-        self.win_links.minsize(width=500, height=400)
-
-        self.win_links.wm_title("Coordinates of tracking mistakes")
-
-        rows = len(self.gpx["main"]["trackHoles"])
-        text = [
-            "#",
-            "From (Long,Lat)",
-            "To (Long,Lat)",
-            "Distance (m)",
-            'View "#" on GoogleMaps',
-        ]
-        weights = [1, 2, 2, 2, 3]
-        for k in range(len(text)):
-            self.win_links.columnconfigure(k, weight=weights[k])
-            label = Label(self.win_links, text=text[k]).grid(
-                row=0, column=k, pady=10, sticky="w"
-            )
-
-        if len(self.gpx["main"]["trackHoles"]) == 0:
-            mess = Label(self.win_links, text="Great! No error has been found!").grid(
-                row=1, column=1, pady=10, sticky="w"
-            )
-
-        # Display trackHole coordinates
+        # Collect tracking holes and links.
         self.links = []
-        run = 0
+        self.hole_summaries = []
         for run, errInd in enumerate(self.gpx["main"]["trackHoles"]):
-            # Save coordinates of start/end in string
             startLat = str(round(self.gpx["main"]["plain"][errInd - 1, 0], 4))
             startLong = str(round(self.gpx["main"]["plain"][errInd - 1, 1], 4))
             endLat = str(round(self.gpx["main"]["plain"][errInd, 0], 4))
             endLong = str(round(self.gpx["main"]["plain"][errInd, 1], 4))
+            dist = str(round(self.gpx["main"]["trackHoleSizes"][run], 1))
 
-            num = Label(self.win_links, text=str(run + 1)).grid(
-                row=run + 1, column=0, pady=10, sticky="w"
+            self.hole_summaries.append(
+                f"Hole #{run + 1}\nFrom: {startLat} , {startLong}\n"
+                f"To: {endLat} , {endLong}\nDistance: {dist} m"
             )
-
-            # Display start end
-            start = Label(self.win_links, text=(startLat + " , " + startLong)).grid(
-                row=run + 1, column=1, pady=10, sticky="w"
-            )
-            stop = Label(self.win_links, text=(endLat + " , " + endLong)).grid(
-                row=run + 1, column=2, pady=10, sticky="w"
-            )
-
-            dist = Label(
-                self.win_links,
-                text=str(round(self.gpx["main"]["trackHoleSizes"][run], 1)),
-            ).grid(row=run + 1, column=3, pady=10, sticky="w")
-
             self.links.append(
                 self.GM_start
                 + startLat
@@ -206,15 +181,42 @@ class Window:
                 + self.GM_end
             )
 
-        # For convenience: Put link for mapstogpx
-        mapstogpx = Button(
-            self.win_links,
-            text="GoogleMaps to GPX",
+        # Top controls: selector + actions.
+        top_controls = Frame(self.win_links)
+        top_controls.pack(pady=(16, 10))
+
+        tkvar = StringVar(self.win_links)
+        if self.links:
+            tkvar.set("1")
+            popupMenu = OptionMenu(top_controls, tkvar, *list(range(1, len(self.links) + 1)))
+        else:
+            tkvar.set("No holes")
+            popupMenu = OptionMenu(top_controls, tkvar, "No holes")
+            popupMenu.configure(state="disabled")
+        popupMenu.pack(side="left", padx=(0, 8))
+
+        # Open selected hole on Google Maps.
+        ok_but = Button(
+            top_controls,
+            text="GO!",
             fg="blue",
             cursor="hand2",
-            command=lambda: webbrowser.open_new("https://mapstogpx.com/"),
+            command=lambda: self.open_selected_hole(tkvar),
         )
-        mapstogpx.grid(row=run + 3, column=4, pady=30, sticky="w")
+        if not self.links:
+            ok_but.configure(state="disabled")
+        ok_but.pack(side="left", padx=(0, 8))
+
+        details_but = Button(
+            top_controls,
+            text="Show details",
+            command=lambda: self.show_selected_hole_info(tkvar),
+        )
+        details_but.pack(side="left")
+
+        # Bottom controls: helper actions.
+        bottom_controls = Frame(self.win_links)
+        bottom_controls.pack(side="bottom", pady=(10, 16))
 
         # Buttons to insert snippet at start or end
         missStartString = (
@@ -226,13 +228,13 @@ class Window:
             + self.GM_end
         )
         missStart = Button(
-            self.win_links,
+            bottom_controls,
             text="I miss the start of my ride",
             fg="blue",
             cursor="hand2",
             command=lambda: webbrowser.open_new(missStartString),
         )
-        missStart.grid(row=run + 3, column=2, pady=10, sticky="w")
+        missStart.pack(side="left", padx=(0, 8))
         missEndString = (
             self.GM_start
             + str(self.gpx["main"]["plain"][-1, 0])
@@ -241,30 +243,67 @@ class Window:
             + self.GM_end
         )
         missEnd = Button(
-            self.win_links,
+            bottom_controls,
             text="I miss the end of my ride",
             fg="blue",
             cursor="hand2",
             command=lambda: webbrowser.open_new(missEndString),
         )
-        missEnd.grid(row=run + 3, column=3, pady=10, sticky="w")
+        missEnd.pack(side="left", padx=(0, 8))
 
-        # Dropdown menu to create GoogleMapsLink
-        tkvar = StringVar(self.win_links)
-        popupMenu = OptionMenu(
-            self.win_links, tkvar, *list(range(1, len(self.links) + 1))
-        )
-        popupMenu.grid(row=1, column=4, sticky="w")
-
-        # Confirmation button
-        ok_but = Button(
-            self.win_links,
-            text="GO!",
+        # For convenience: Put link for mapstogpx
+        mapstogpx = Button(
+            bottom_controls,
+            text="GoogleMaps to GPX",
             fg="blue",
             cursor="hand2",
-            command=lambda: webbrowser.open_new(self.links[int(tkvar.get()) - 1]),
+            command=lambda: webbrowser.open_new("https://mapstogpx.com/"),
         )
-        ok_but.grid(row=2, column=4, pady=0, sticky="w")
+        mapstogpx.pack(side="left")
+
+        if self.links:
+            messagebox.showinfo(
+                "Tracking mistakes",
+                f"Found {len(self.links)} hole(s). Use selector + 'Show details' or 'GO!'.",
+                parent=self.win_links,
+            )
+        else:
+            messagebox.showinfo(
+                "Tracking mistakes",
+                "Great! No error has been found!",
+                parent=self.win_links,
+            )
+
+    def open_selected_hole(self, tkvar):
+        if not self.links:
+            return None
+        try:
+            index = int(tkvar.get()) - 1
+        except (TypeError, ValueError):
+            return None
+        if 0 <= index < len(self.links):
+            webbrowser.open_new(self.links[index])
+        return None
+
+    def show_selected_hole_info(self, tkvar):
+        if not self.links:
+            messagebox.showinfo(
+                "Tracking mistakes",
+                "Great! No error has been found!",
+                parent=self.win_links,
+            )
+            return None
+        try:
+            index = int(tkvar.get()) - 1
+        except (TypeError, ValueError):
+            return None
+        if 0 <= index < len(self.hole_summaries):
+            messagebox.showinfo(
+                f"Hole #{index + 1}",
+                self.hole_summaries[index],
+                parent=self.win_links,
+            )
+        return None
 
     def extractParam(self, fileType):
         """
@@ -355,19 +394,9 @@ class Window:
 
         return None
 
-    def messageWindow(self, title, message, width, height):
-        # Function to open a new small window displaying an error or confirmation message.
-        self.win_mess = Toplevel(self.master)
-        self.win_mess_frame = Frame(self.win_mess)
-
-        # Appearance of window
-        self.win_mess.minsize(width=width, height=height)
-        self.win_mess.maxsize(width=800, height=400)
-        self.win_mess.wm_title(title)
-
-        # Error message
-        self.win_Mess = Message(self.win_mess, text=message)
-        self.win_Mess.grid(row=1, column=1, padx=20, pady=20)
+    def messageWindow(self, title="Message", message="", width=None, height=None):
+        # Use native message boxes for robust text rendering on macOS Tk.
+        messagebox.showinfo(title=title, message=message, parent=self.master)
 
     def Merge(self):
         # This function merges the main GPX file with the snippet
@@ -650,20 +679,128 @@ class Window:
         self.extractParam("main")
 
     def read_distance(self):
-        # Read out the inserted distance frorm the e_dist field.
-        rawDistance = self.e_dist.get()
-        try:
-            self.dist = float(rawDistance)
-        except ValueError:
-            self.e_dist.delete(0)
-            self.e_dist.insert(0, "Insert a valid number!")
-            # If then MERGE is pressed, the latest valid distance value will be used
+        # Read distance via button-only keypad dialog to avoid flaky text entry rendering.
+        value = self.ask_distance_via_keypad(None)
+        if value is None:
+            return None
+        self.dist = value
+        self.b_OK.configure(text=f"Enter Distance ({self.dist:g} m)")
 
-    def click_on(self, event):
-        # Click on an entry. Delete preview text!
-        self.e_dist.delete(0)
+    def ask_distance_via_keypad(self, initial=None):
+        win = Toplevel(self.master)
+        win.wm_title("Snippet distance (m)")
+        win.resizable(False, False)
+        win.transient(self.master)
+        win.grab_set()
+
+        state = {"text": "" if initial is None else str(float(initial)).rstrip("0").rstrip(".")}
+        result = {"value": None}
+
+        display = Button(
+            win,
+            text=state["text"] if state["text"] else "0",
+            state="disabled",
+            disabledforeground="black",
+            relief="sunken",
+            width=20,
+            anchor="e",
+        )
+        display.grid(row=0, column=0, columnspan=3, padx=10, pady=(10, 6), sticky="ew")
+
+        def refresh():
+            display.configure(text=state["text"] if state["text"] else "0")
+
+        def add_char(ch):
+            if ch == "." and "." in state["text"]:
+                return
+            state["text"] += ch
+            refresh()
+
+        def backspace():
+            state["text"] = state["text"][:-1]
+            refresh()
+
+        def clear():
+            state["text"] = ""
+            refresh()
+
+        def accept():
+            raw = state["text"].strip()
+            if raw in {"", ".", "-.", "-"}:
+                messagebox.showinfo(
+                    title="Instruction",
+                    message='Please insert a valid distance in m and press "OK".',
+                    parent=win,
+                )
+                return
+            try:
+                value = float(raw)
+            except ValueError:
+                messagebox.showinfo(
+                    title="Instruction",
+                    message='Please insert a valid distance in m and press "OK".',
+                    parent=win,
+                )
+                return
+            if value < 0:
+                messagebox.showinfo(
+                    title="Instruction",
+                    message='Please insert a valid distance in m and press "OK".',
+                    parent=win,
+                )
+                return
+            result["value"] = value
+            win.destroy()
+
+        def cancel():
+            win.destroy()
+
+        keypad_rows = [("7", "8", "9"), ("4", "5", "6"), ("1", "2", "3"), (".", "0", "⌫")]
+        for r, row in enumerate(keypad_rows, start=1):
+            for c, key in enumerate(row):
+                if key == "⌫":
+                    cmd = backspace
+                else:
+                    cmd = (lambda ch=key: add_char(ch))
+                Button(win, text=key, width=6, command=cmd).grid(
+                    row=r, column=c, padx=4, pady=4
+                )
+
+        Button(win, text="Clear", width=6, command=clear).grid(
+            row=5, column=0, padx=4, pady=(4, 10)
+        )
+        Button(win, text="Cancel", width=6, command=cancel).grid(
+            row=5, column=1, padx=4, pady=(4, 10)
+        )
+        Button(win, text="OK", width=6, command=accept).grid(
+            row=5, column=2, padx=4, pady=(4, 10)
+        )
+
+        def on_key(event):
+            ch = event.char
+            if ch.isdigit():
+                add_char(ch)
+            elif ch in {".", ","}:
+                add_char(".")
+            elif event.keysym == "BackSpace":
+                backspace()
+            elif event.keysym in {"Return", "KP_Enter"}:
+                accept()
+            elif event.keysym == "Escape":
+                cancel()
+
+        win.bind("<Key>", on_key)
+        win.focus_force()
+        win.wait_window()
+        return result["value"]
 
 
-root = Tk()
-gui = Window(root)
-root.mainloop()
+def launch():
+    os.environ.setdefault("TK_SILENCE_DEPRECATION", "1")
+    root = Tk()
+    Window(root)
+    root.mainloop()
+
+
+if __name__ == "__main__":
+    launch()
