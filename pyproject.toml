@@ -1,0 +1,47 @@
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "gpxfix"
+dynamic = ["version"]
+description = "gpxfix: GUI to fix .gpx tracks with missing sections"
+readme = "README.md"
+requires-python = ">=3.8,<3.13"
+license = "MIT"
+authors = [
+  { name = "Jannis Born", email = "jannis.born@gmx.de" },
+]
+keywords = ["GPX", "Tracking", "Sports", "Running", "Cycling", "Strava"]
+classifiers = [
+  "Intended Audience :: Developers",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
+  "Topic :: Software Development :: Libraries :: Python Modules",
+]
+dependencies = [
+  "numpy",
+  "gpxpy>=1.3.5",
+  "matplotlib",
+]
+
+[project.urls]
+Homepage = "https://github.com/jannisborn/gpxfix"
+
+[project.scripts]
+gpxfix = "gpxfix.main:launch"
+
+[tool.setuptools.packages.find]
+where = ["."]
+
+[tool.setuptools.dynamic]
+version = { attr = "gpxfix.__version__" }
+
+[tool.uv]
+python-preference = "only-system"

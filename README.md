@@ -14,41 +14,47 @@ It's a common issue for every sportsman who loves recording activities. Your dev
 Then, checking out your track, you see straight lines or the first/last bit is completelty missing.
 
 ## Installation
-`gpxfix` ships via `pypi`:
+Install from PyPI with `uv`:
 ```sh
-pip install gpxfix
+uv tool install gpxfix
 ```
 
-Afterwards, just type `gpxfix` to start the UI
+Or run from local source:
+```sh
+uv sync
+uv run gpxfix
+```
+
+If you installed with `uv tool install`, you can run `gpxfix` directly. For local development, use `uv run gpxfix`.
+
+If you see a Tcl/Tk error like `Can't find a usable init.tcl`, create the venv with system Python:
+```sh
+uv sync --python /usr/bin/python3
+```
 
 
 
 
 
-## Usage instruction
-1. If you run the file, the default windofw of the GUI shows up:
+## Usage instructions
+1. If you run the file, the default window of the GUI shows up:
 ![alt text](assets/Default.png "Main window in action")
-2. You see a couple of options here, the first step should be to upload your GPX file
-3. You get a confirmation message once the file has been parsed successfully
-4. Press **Show Tracking Mistakes** to let the algorithm find the missing sections in your file. Per default a tracking mistake is defined as not having recorded a GPX trackpoint for at least **5 sec** with you having moved at least **400m**. I find this okay for cycling but you can change these parameters at the beginning of the code.
-
-    1. A window pops up saying *"Great! No error has been found."* This means, your file itself is consistent, but you may want to insert something at the beginning or at the end. To do so, please click on the respective link which directs you to Google Maps. Then you simply have to tell Google where you started/ended your trip.
- 
-    2. Otherwise, you get an overview of the found errors, i.e. the program displays you the coordinates of the last trackpoint before and the first trackpoint after the missing spot. Now, assuming you want to fill in this gap in your GPX file, please select the number of the error from the dropdown and click **GO!** to instruct GoogleMaps to find the shortest path between the 2 trackpoints. Default vehicle is bicycle. Now you can set easily adjust this snippet such that it fits the route you actually took. 
-    ![alt text](assets/GM.png "Create the missing part of the track on Google Maps")
-**NOTE: In this window you determine *where* your snippet will be inserted. ** If you want to insert a snippet at the start click "I miss the start of my ride". If you dont select *anything* here, the program will not know *where* to insert your snippet and fail later.
-
-
-6. Now, we want to merge the snippet we just created with the broken track we recorded. For this, we use a nice tool called [mapstogpx](https://www.mapstogpx.com). Past the link from the Google Maps snippet you just created and download the file (make sure you to tick **Advanced Settings -> Include Elevation** before downloading). Please also make sure to remember the distance of the snippet (according to Googe Maps).
-
-
-7. Tell the program where you saved the snippet via **Upload GPX fragment**.
-8. You have to fill in the distance of the fragment that you want to merge (for some reason, ```gpxpy.geo.haversine_distance``` behaves a bit erratically and consequently speed estimation is imprecise). Then press **OK** and then **Repair!**
-9. Hopefully, everything went through and the repaired file was saved in the directory "*Corrected Files*"
+2. Upload your GPX file via **Upload GPX-Track**.
+3. You get a confirmation message once the file has been parsed successfully.
+4. Press **Show Tracking Mistakes** to detect missing sections. By default, a tracking mistake is defined as no trackpoint for at least **5 sec** and at least **400m** movement.
+5. In the mistakes window:
+   - If no errors are found, you will see a message saying *"Great! No error has been found."*
+   - If errors are found, select the hole number in the dropdown, click **Show details** to view coordinates/distance, or click **GO!** to open that hole on Google Maps.
+   - Use **I miss the start of my ride** / **I miss the end of my ride** for missing start/end sections.
+   - Use **GoogleMaps to GPX** to open [mapstogpx](https://www.mapstogpx.com).
+   ![alt text](assets/GM.png "Create the missing part of the track on Google Maps")
+6. Create and download your snippet GPX from mapstogpx (tick **Advanced Settings -> Include Elevation**) and note the snippet distance from Google Maps.
+7. Upload the snippet via **Upload GPX fragment**.
+8. Click **Enter Distance** and input the snippet distance in meters via the keypad dialog.
+9. Click **Repair!** to merge and repair the track.
+10. The repaired file is saved in the directory "*Corrected Files*".
     ![alt text](assets/success.png "Confirmation message")
 
-10. If you have multiple issues with your GPX file, just repeat the procedure.
+11. If you have multiple issues with your GPX file, repeat the procedure.
 
 Feel free to fork and please report any issues.
-
-

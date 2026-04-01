@@ -1,5 +1,5 @@
-#!/usr/bin/env python3
 from gpxfix.main import launch
+
 
 if __name__ == "__main__":
     launch()
